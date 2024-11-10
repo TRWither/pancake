@@ -41,3 +41,10 @@ git clone https://github.com/TRWither/pancake
 ```
 2. Run `install.sh`.
 3. Run PanCake with `pancake`!
+
+## Contributing
+You are free to contribute! But please follow these steps:
+1. Fork this repository
+2. Add your changes
+3. Commit your changes
+4. Your changes will be added if I find them good!
