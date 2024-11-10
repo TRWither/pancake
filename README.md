@@ -17,3 +17,13 @@ PanCake is very easy to use. Here's the full list of commands, which you can als
 `save`: save your tasks, the trash and your advancement
 `load`: load the save file (saved_tasks.json)
 `advancements`: display the amount of completed and unfinished tasks
+
+WARNING: you must be root to save and load
+
+## Installation
+1. Clone this repository
+```bash
+git clone https://github.com/TRWither/pancake
+```
+2. Run `install.sh`.
+3. Run PanCake with `pancake`!
