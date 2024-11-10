@@ -204,7 +204,7 @@ class PanCake:
         Display the MIT License terms for PanCake.
         """
         print("""
-Copyright (c) 2024 Adrien THIERRY
+Copyright (c) 2024 Wither__
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
