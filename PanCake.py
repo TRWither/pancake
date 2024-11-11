@@ -8,14 +8,16 @@ class PanCake:
     """
     PanCake class.
     :param tasks: the user tasks
+    :param important_tasks: the important user tasks
     :param complete: the completed tasks
     :param unfinished: the unfinished tasks
     :param trash: the user trash
     :param version: the PanCake version
     :param save_file: the PanCake save file
     """
-    def __init__(self, version: str="1.0.0", save_file=None):
+    def __init__(self, version: str="1.1", save_file=None):
         self.tasks = {}
+        self.important_tasks = {}
         self.complete = 0
         self.unfinished = 0
         self.trash = []
@@ -38,8 +40,17 @@ class PanCake:
         """
         Display an enumeration of all the user tasks.
         """
-        for i, (task, status) in enumerate(self.tasks.items(), start=1):
-            print(f"{i}. {task} - {status}")
+        if self.important_tasks:
+            print("--> IMPORTANT TASKS")
+            for i, (task, status) in enumerate(self.important_tasks.items(), start=1):
+                print(f"* {i}. {task} - {status}")
+
+        if self.tasks and self.important_tasks:
+            print("--------------------------------------")
+
+        if self.tasks:
+            for i, (task, status) in enumerate(self.tasks.items(), start=1):
+                print(f"{i}. {task} - {status}")
 
     def display_trash(self):
         """
@@ -71,6 +82,13 @@ class PanCake:
                 self.complete -= 1
             else:
                 self.unfinished -= 1
+        elif task in self.important_tasks:
+            removed_task = self.important_tasks.pop(task)
+            self.trash.append(task)
+            if removed_task == "Complete":
+                self.complete -= 1
+            else:
+                self.unfinished -= 1
         else:
             print("This task doesn't exist.")
 
@@ -86,6 +104,13 @@ class PanCake:
                 self.unfinished -= 1
             else:
                 print("Task already complete.")
+        elif task in self.important_tasks:
+            if self.important_tasks[task] != "Complete":
+                self.important_tasks[task] = "Complete"
+                self.complete += 1
+                self.unfinished -= 1
+            else:
+                print("Task already complete.")
         else:
             print("This task doesn't exist.")
 
@@ -97,6 +122,13 @@ class PanCake:
         if task in self.tasks:
             if self.tasks[task] != "Unfinished":
                 self.tasks[task] = "Unfinished"
+                self.complete -= 1
+                self.unfinished += 1
+            else:
+                print("This task is already unfinished.")
+        elif task in self.important_tasks:
+            if self.important_tasks[task] != "Unfinished":
+                self.important_tasks[task] = "Unfinished"
                 self.complete -= 1
                 self.unfinished += 1
             else:
@@ -147,7 +179,8 @@ class PanCake:
             "tasks": self.tasks,
             "trash": self.trash,
             "complete": self.complete,
-            "unfinished": self.unfinished
+            "unfinished": self.unfinished,
+            'important':self.important_tasks
         }
         with open(self.save_file, 'w') as save_file:
             json.dump(data, save_file)
@@ -165,6 +198,7 @@ class PanCake:
                 self.trash = data.get("trash", [])
                 self.complete = data.get("complete", 0)
                 self.unfinished = data.get("unfinished", 0)
+                self.important_tasks = data.get("important", [])
             print("Tasks loaded successfully.")
         except FileNotFoundError:
             print("No saved tasks found.")
@@ -176,6 +210,38 @@ class PanCake:
         Clear the screen.
         """
         os.system('clear' if os.name == 'posix' else 'cls')
+
+    def pin_task(self, task: str):
+        """
+        Add a :param task: to the important tasks and remove
+        it from the user tasks.
+        """
+        task = " ".join(task)
+        if task in self.tasks:
+            self.tasks.pop(task)
+            self.important_tasks[task] = "Unfinished"
+        elif task in self.important_tasks:
+            print("You already pinned this task.")
+        elif task in self.trash:
+            print("This task is in the trash.")
+        else:
+            print("This task doesn't exist.")
+
+    def unpin_task(self, task: str):
+        """
+        Remove a task from the important tasks and add
+        it to the user tasks.
+        """
+        task = " ".join(task)
+        if task in self.important_tasks:
+            self.important_tasks.pop(task)
+            self.tasks[task] = "Unfinished"
+        elif task in self.tasks:
+            print("This task is not pinned.")
+        elif task in self.trash:
+            print("This task is in the trash.")
+        else:
+            print("This task doesn't exist.")
 
     def help(self):
         """
@@ -198,6 +264,9 @@ class PanCake:
         print("save                     ->        save your current tasks")
         print("load                     ->        load a save file")
         print("clear                    ->        clear the screen")
+        print("pin <task>               ->        pin a task")
+        print("unpin <task>             ->        unpin a task")
+        print("updated                  ->        show what's new in this version")
 
     def license(self):
         """
@@ -224,6 +293,16 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        """)
+
+    def updated(self):
+        print("""
+Pancake 1.1 is out!
+----------------------
+What's new?
+- We can pin and unpin tasks
+- Better display of the tasks command message
+- Better installation in install.sh
         """)
 
     def exit(self):
@@ -283,6 +362,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                 self.load_tasks()
             elif name == "clear":
                 self.clear_screen()
+            elif name == "pin" and argument:
+                self.pin_task(argument)
+            elif name == "unpin" and argument:
+                self.unpin_task(argument)
+            elif name == "updated":
+                self.updated()
             else:
                 print("Invalid command. Type 'help' to see the commands list.")
 
