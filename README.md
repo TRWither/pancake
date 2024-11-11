@@ -32,6 +32,13 @@ PanCake is very easy to use. Here's the full list of commands, which you can als
 
 `advancements`: display the amount of completed and unfinished tasks
 
+### 1.1 new commands
+`pin <task name>`: pin a task
+
+`unpin <task name>`: unpin a task
+
+`updated`: see what is new in the last update
+
 WARNING: you must be root to save and load
 
 ## Installation
@@ -39,8 +46,10 @@ WARNING: you must be root to save and load
 ```bash
 git clone https://github.com/TRWither/pancake
 ```
-2. Run `install.sh`.
+2. Run `install.sh` as root.
 3. Run PanCake with `pancake`!
+
+NOTE: if you are on Windows, you cannot use install.sh
 
 ## Contributing
 You are free to contribute! But please follow these steps:
