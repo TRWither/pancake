@@ -32,12 +32,26 @@ PanCake is very easy to use. Here's the full list of commands, which you can als
 
 `advancements`: display the amount of completed and unfinished tasks
 
-### 1.1 new commands
 `pin <task name>`: pin a task
 
 `unpin <task name>`: unpin a task
 
 `updated`: see what is new in the last update
+
+### New 1.2 commands
+`empty`: clear the trash
+
+`removeall`: move all the tasks to the trash
+
+`full-complete`: complete all the tasks
+
+`full-unfinish`: mark all the tasks as unfinished
+
+`recoverall`: recover all the removed tasks
+
+`history`: display the commands history
+
+`history-clear`: clear the commands history
 
 WARNING: you must be root to save and load
 
@@ -47,7 +61,7 @@ WARNING: you must be root to save and load
 git clone https://github.com/TRWither/pancake
 ```
 2. Run `install.sh` as root.
-3. Run PanCake with `pancake`!
+3. Run PanCake with `pancake1.2`!
 
 NOTE: if you are on Windows, you cannot use install.sh
 
