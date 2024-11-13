@@ -15,13 +15,14 @@ class PanCake:
     :param version: the PanCake version
     :param save_file: the PanCake save file
     """
-    def __init__(self, version: str="1.1", save_file=None):
+    def __init__(self, version: str="1.2", save_file=None):
         self.tasks = {}
         self.important_tasks = {}
         self.complete = 0
         self.unfinished = 0
         self.trash = []
         self.version = version
+        self.history = []
 
         if save_file is None:
             script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -92,9 +93,19 @@ class PanCake:
         else:
             print("This task doesn't exist.")
 
+    def remove_all(self):
+        """Déplace toutes les tâches vers la corbeille."""
+        for task in list(self.tasks):
+            removed_task = self.tasks.pop(task)
+            self.trash.append(task)
+            if removed_task == "Complete":
+                self.complete -= 1
+            else:
+                self.unfinished -= 1
+
     def complete_task(self, task: str):
         """
-        Complete a task.
+        Complete a user task.
         """
         task = " ".join(task)
         if task in self.tasks:
@@ -114,9 +125,19 @@ class PanCake:
         else:
             print("This task doesn't exist.")
 
+    def full_complete(self):
+        """
+        Complete all the user tasks.
+        """
+        for task in self.tasks:
+            if self.tasks[task] == "Unfinished":
+                self.tasks[task] = "Complete"
+                self.complete += 1
+                self.unfinished -= 1
+
     def unfinish_task(self, task: str):
         """
-        Unfinish a task.
+        Mark a user task as unfinished.
         """
         task = " ".join(task)
         if task in self.tasks:
@@ -136,9 +157,19 @@ class PanCake:
         else:
             print("This task doesn't exist.")
 
+    def full_unfinish(self):
+        """
+        Mark all the user tasks as unfinished.
+        """
+        for task in self.tasks:
+            if self.tasks[task] == "Complete":
+                self.tasks[task] = "Unfinished"
+                self.complete -= 1
+                self.unfinished += 1
+
     def recover_task(self, task: str):
         """
-        Recover a task from the trash.
+        Recover a removed task.
         """
         task = " ".join(task)
         if task in self.trash:
@@ -149,6 +180,15 @@ class PanCake:
             print("This task is not in the trash.")
         else:
             print("This task doesn't exist.")
+
+    def recover_all(self):
+        """
+        Recover all the removed tasks.
+        """
+        removed_tasks = self.trash
+        for task in removed_tasks:
+            self.tasks[task] = "Unfinished"
+        self.trash = []
 
     def destroy_task(self, task: str):
         """
@@ -162,6 +202,15 @@ class PanCake:
             print("This task is not in the trash.")
         else:
             print("This task doesn't exist.")
+
+    def empty_trash(self):
+        """
+        Remove all the tasks from the trash.
+        The tasks cannot be recovered.
+        """
+        confirmation = input("The tasks cannot be recovered. Are you sure you want to do that (Y/n)? ")
+        if confirmation == "Y":
+            self.trash.clear()
 
     def advancement(self):
         """
@@ -180,7 +229,8 @@ class PanCake:
             "trash": self.trash,
             "complete": self.complete,
             "unfinished": self.unfinished,
-            'important':self.important_tasks
+            'important':self.important_tasks,
+            'history': self.history
         }
         with open(self.save_file, 'w') as save_file:
             json.dump(data, save_file)
@@ -199,6 +249,7 @@ class PanCake:
                 self.complete = data.get("complete", 0)
                 self.unfinished = data.get("unfinished", 0)
                 self.important_tasks = data.get("important", [])
+                self.history = data.get("history", [])
             print("Tasks loaded successfully.")
         except FileNotFoundError:
             print("No saved tasks found.")
@@ -243,6 +294,19 @@ class PanCake:
         else:
             print("This task doesn't exist.")
 
+    def display_history(self):
+        """
+        Display the current commands history of the user.
+        """
+        for i, command in enumerate(self.history, start=1):
+            print(f"{i}. {command}")
+
+    def history_clear(self):
+        """
+        Clear the entire commands history of the user.
+        """
+        self.history.clear()
+
     def help(self):
         """
         Display a help message.
@@ -267,6 +331,13 @@ class PanCake:
         print("pin <task>               ->        pin a task")
         print("unpin <task>             ->        unpin a task")
         print("updated                  ->        show what's new in this version")
+        print("empty                    ->        remove all the tasks from the trash")
+        print("recoverall               ->        recover all the removed tasks")
+        print("full-complete            ->        complete all the tasks")
+        print("full-unfinish            ->        mark all the tasks as unfinished")
+        print("history                  ->        show your commands history")
+        print("history-clear            ->        clear your commands history")
+        print("removeall                ->        remove all the tasks")
 
     def license(self):
         """
@@ -297,12 +368,21 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     def updated(self):
         print("""
-Pancake 1.1 is out!
+Pancake 1.2 is out!
 ----------------------
 What's new?
-- We can pin and unpin tasks
-- Better display of the tasks command message
-- Better installation in install.sh
+- You can now remove everything from the trash!
+- You can mark all your tasks as completed or unfinished in one command!
+- There is a commands history!
+- You can recover all your removed tasks!
+- You can put all your tasks in the trash in only one command!
+
+In particular, this update adds commands to reduce the duration of certain
+manipulations. For example, the 'empty' command deletes all tasks in the
+recycle garbage can, while 'full-complete' completes all tasks.
+A command history has also been added, allowing you to view previously used
+commands. Note also that it is included in the data saved by the 'save'
+command.
         """)
 
     def exit(self):
@@ -368,8 +448,24 @@ What's new?
                 self.unpin_task(argument)
             elif name == "updated":
                 self.updated()
+            elif name == "empty":
+                self.empty_trash()
+            elif name == "recoverall":
+                self.recover_all()
+            elif name == "full-complete":
+                self.full_complete()
+            elif name == "full-unfinish":
+                self.full_unfinish()
+            elif name == "history":
+                self.display_history()
+            elif name == "history-clear":
+                self.history_clear()
+            elif name == "removeall":
+                self.remove_all()
             else:
                 print("Invalid command. Type 'help' to see the commands list.")
+
+            self.history.append(command)
 
 # Run PanCake
 pancake = PanCake()
