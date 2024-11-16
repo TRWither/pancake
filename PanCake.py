@@ -359,7 +359,8 @@ class PanCake:
             'important':self.important_tasks,
             'history': self.history,
             "secrets": self.secret_tasks,
-            "secrets-password": self.secret_tasks_password
+            "secrets-password": self.secret_tasks_password,
+            "logs-status": self.logs_status
         }
         with open(self.save_file, 'w') as save_file:
             json.dump(data, save_file)
@@ -383,6 +384,7 @@ class PanCake:
                 self.history = data.get("history", [])
                 self.secret_tasks = data.get("secrets", {})
                 self.secret_tasks_password = data.get("secrets-password", "")
+                self.logs_status = data.get("logs-status", 0)
             if self.logs_status == 1 or self.logs_status == 2:
                 print("Tasks loaded successfully.")
         except FileNotFoundError:
