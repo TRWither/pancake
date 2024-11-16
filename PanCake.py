@@ -14,8 +14,11 @@ class PanCake:
     :param trash: the user trash
     :param version: the PanCake version
     :param save_file: the PanCake save file
+    :param secret_tasks: the user secret tasks
+    :param secret_tasks_password: the password for the secret tasks
+    :param logs_status: the logs status (2 by default)
     """
-    def __init__(self, version: str="1.2", save_file=None):
+    def __init__(self, version: str="1.3", save_file=None):
         self.tasks = {}
         self.important_tasks = {}
         self.complete = 0
@@ -23,6 +26,9 @@ class PanCake:
         self.trash = []
         self.version = version
         self.history = []
+        self.secret_tasks = {}
+        self.secret_tasks_password = ""
+        self.logs_status = 2
 
         if save_file is None:
             script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -60,6 +66,18 @@ class PanCake:
         for i, task in enumerate(self.trash, start=1):
             print(f"{i}. {task}")
 
+    def display_secrets(self):
+        """
+        Display an enumeration of all the secret tasks.
+        """
+        password = input("Enter password: ")
+        if password == self.secret_tasks_password:
+            for i, (task, status) in enumerate(self.secret_tasks.items(), start=1):
+                print(f"{i}. {task} - {status}")
+        else:
+            if self.logs_status == 1 or self.logs_status == 2:
+                print("Wrong password.")
+
     def add_task(self, task: str):
         """
         Add a new task to the user tasks.
@@ -68,8 +86,62 @@ class PanCake:
         if task not in self.tasks:
             self.tasks[task] = "Unfinished"
             self.unfinished += 1
+
+            # LOG
+            if self.logs_status == 2:
+                print(f"'{task}' has been added to the tasks.")
+            # ENDLOG
+
         else:
-            print("Task already added.")
+            if self.logs_status == 1 or self.logs_status == 2:
+                print("Task already added.")
+
+    def add_secret(self, task: str):
+        """
+        Add a new or an existing task to the secret tasks.
+        """
+        password = input("Enter password: ")
+        if password == self.secret_tasks_password:
+            task = " ".join(task)
+            if task in self.tasks:
+                self.secret_tasks[task] = self.tasks[task]
+                self.tasks.pop(task)
+
+                # LOG
+                if self.logs_status == 2:
+                    print(f"'{task}' has been added to the secret tasks")
+                # ENDLOG
+
+            elif task in self.important_tasks:
+                self.secret_tasks[task] = self.important_tasks[task]
+                self.important_tasks.pop(task)
+            elif task in self.trash:
+                if self.logs_status == 1 or self.logs_status == 2:
+                    print("This task is in the trash.")
+            else:
+                self.secret_tasks[task] = "Unfinished"
+        else:
+            if self.logs_status == 1 or self.logs_status == 2:
+                print("Wrong password.")
+
+    def remove_secret(self, task: str):
+        """
+        Remove a task from the secret tasks.
+        """
+        password = input("Enter password: ")
+        if password == self.secret_tasks_password:
+            task = " ".join(task)
+            if task in self.secret_tasks:
+                if self.logs_status == 2:
+                    print(f"Removing '{task}'...")
+                self.tasks[task] = self.secret_tasks[task]
+                self.secret_tasks.pop(task)
+            else:
+                if self.logs_status == 1 or self.logs_status == 2:
+                    print("This task is not hidden.")
+        else:
+            if self.logs_status == 1 or self.logs_status == 2:
+                print("Wrong password.")
 
     def remove_task(self, task: str):
         """
@@ -77,6 +149,8 @@ class PanCake:
         """
         task = " ".join(task)
         if task in self.tasks:
+            if self.logs_status == 2:
+                print(f"Removing '{task}'...")
             removed_task = self.tasks.pop(task)
             self.trash.append(task)
             if removed_task == "Complete":
@@ -84,6 +158,8 @@ class PanCake:
             else:
                 self.unfinished -= 1
         elif task in self.important_tasks:
+            if self.logs_status == 2:
+                print(f"Removing '{task}'...")
             removed_task = self.important_tasks.pop(task)
             self.trash.append(task)
             if removed_task == "Complete":
@@ -91,11 +167,16 @@ class PanCake:
             else:
                 self.unfinished -= 1
         else:
-            print("This task doesn't exist.")
+            if self.logs_status == 1 or self.logs_status == 2:
+                print("This task doesn't exist.")
 
     def remove_all(self):
-        """Déplace toutes les tâches vers la corbeille."""
+        """
+        Move all the tasks to the trash.
+        """
         for task in list(self.tasks):
+            if self.logs_status == 2:
+                print(f"Removing '{task}'...")
             removed_task = self.tasks.pop(task)
             self.trash.append(task)
             if removed_task == "Complete":
@@ -114,24 +195,46 @@ class PanCake:
                 self.complete += 1
                 self.unfinished -= 1
             else:
-                print("Task already complete.")
+                if self.logs_status == 1 or self.logs_status == 2:
+                    print("Task already complete.")
         elif task in self.important_tasks:
             if self.important_tasks[task] != "Complete":
                 self.important_tasks[task] = "Complete"
                 self.complete += 1
                 self.unfinished -= 1
             else:
-                print("Task already complete.")
+                if self.logs_status == 1 or self.logs_status == 2:
+                    print("Task already complete.")
+        elif task in self.secret_tasks:
+            password = input("Enter password: ")
+            if password == self.secret_tasks_password:
+                if self.secret_tasks[task] != "Complete":
+                    self.secret_tasks[task] = "Complete"
+                    self.complete += 1
+                    self.unfinished -= 1
+            else:
+                if self.logs_status == 1 or self.logs_status == 2:
+                    print("Wrong password.")
         else:
-            print("This task doesn't exist.")
+            if self.logs_status == 1 or self.logs_status == 2:
+                print("This task doesn't exist.")
 
     def full_complete(self):
         """
         Complete all the user tasks.
         """
         for task in self.tasks:
+            if self.logs_status == 2:
+                print(f"Completing '{task}'...")
             if self.tasks[task] == "Unfinished":
                 self.tasks[task] = "Complete"
+                self.complete += 1
+                self.unfinished -= 1
+        for task in self.important_tasks:
+            if self.logs_status == 2:
+                print(f"Completing '{task}'...")
+            if self.important_tasks[task] == "Unfinished":
+                self.important_tasks[task] = "Complete"
                 self.complete += 1
                 self.unfinished -= 1
 
@@ -145,25 +248,41 @@ class PanCake:
                 self.tasks[task] = "Unfinished"
                 self.complete -= 1
                 self.unfinished += 1
-            else:
-                print("This task is already unfinished.")
         elif task in self.important_tasks:
             if self.important_tasks[task] != "Unfinished":
                 self.important_tasks[task] = "Unfinished"
                 self.complete -= 1
                 self.unfinished += 1
+        elif task in self.secret_tasks:
+            password = input("Enter password: ")
+            if password == self.secret_tasks_password:
+                if self.secret_tasks[task] != "Unfinished":
+                    self.secret_tasks[task] = "Unfinished"
+                    self.complete -= 1
+                    self.unfinished += 1
             else:
-                print("This task is already unfinished.")
+                if self.logs_status == 1 or self.logs_status == 2:
+                    print("Wrong password.")
         else:
-            print("This task doesn't exist.")
+            if self.logs_status == 1 or self.logs_status == 2:
+                print("This task doesn't exist.")
 
     def full_unfinish(self):
         """
         Mark all the user tasks as unfinished.
         """
         for task in self.tasks:
+            if self.logs_status == 2:
+                print(f"Marking '{task}' as unfinished...")
             if self.tasks[task] == "Complete":
                 self.tasks[task] = "Unfinished"
+                self.complete -= 1
+                self.unfinished += 1
+        for task in self.important_tasks:
+            if self.logs_status == 2:
+                print(f"Marking '{task}' as unfinished...")
+            if self.important_tasks[task] == "Complete":
+                self.important_tasks[task] = "Unfinished"
                 self.complete -= 1
                 self.unfinished += 1
 
@@ -177,9 +296,11 @@ class PanCake:
             self.tasks[task] = "Unfinished"
             self.unfinished += 1
         elif task in self.tasks:
-            print("This task is not in the trash.")
+            if self.logs_status == 1 or self.logs_status == 2:
+                print("This task is not in the trash.")
         else:
-            print("This task doesn't exist.")
+            if self.logs_status == 1 or self.logs_status == 2:
+                print("This task doesn't exist.")
 
     def recover_all(self):
         """
@@ -187,6 +308,7 @@ class PanCake:
         """
         removed_tasks = self.trash
         for task in removed_tasks:
+            print(f"Recovering '{task}'...")
             self.tasks[task] = "Unfinished"
         self.trash = []
 
@@ -199,9 +321,11 @@ class PanCake:
         if task in self.trash:
             self.trash.remove(task)
         elif task in self.tasks:
-            print("This task is not in the trash.")
+            if self.logs_status == 1 or self.logs_status == 2:
+                print("This task is not in the trash.")
         else:
-            print("This task doesn't exist.")
+            if self.logs_status == 1 or self.logs_status == 2:
+                print("This task doesn't exist.")
 
     def empty_trash(self):
         """
@@ -210,6 +334,8 @@ class PanCake:
         """
         confirmation = input("The tasks cannot be recovered. Are you sure you want to do that (Y/n)? ")
         if confirmation == "Y":
+            if self.logs_status == 2:
+                print(f"Clearing trash...")
             self.trash.clear()
 
     def advancement(self):
@@ -223,24 +349,30 @@ class PanCake:
         """
         Save the current session.
         """
-        print("Saving...")
+        if self.logs_status == 1 or self.logs_status == 2:
+            print("Saving...")
         data = {
             "tasks": self.tasks,
             "trash": self.trash,
             "complete": self.complete,
             "unfinished": self.unfinished,
             'important':self.important_tasks,
-            'history': self.history
+            'history': self.history,
+            "secrets": self.secret_tasks,
+            "secrets-password": self.secret_tasks_password,
+            "logs-status": self.logs_status
         }
         with open(self.save_file, 'w') as save_file:
             json.dump(data, save_file)
-        print("Saved.")
+        if self.logs_status == 1 or self.logs_status == 2:
+            print("Saved.")
 
     def load_tasks(self):
         """
         Load the save file.
         """
-        print("Loading...")
+        if self.logs_status == 1 or self.logs_status == 2:
+            print("Loading...")
         try:
             with open(self.save_file, 'r') as save_file:
                 data = json.load(save_file)
@@ -250,11 +382,17 @@ class PanCake:
                 self.unfinished = data.get("unfinished", 0)
                 self.important_tasks = data.get("important", [])
                 self.history = data.get("history", [])
-            print("Tasks loaded successfully.")
+                self.secret_tasks = data.get("secrets", {})
+                self.secret_tasks_password = data.get("secrets-password", "")
+                self.logs_status = data.get("logs-status", 0)
+            if self.logs_status == 1 or self.logs_status == 2:
+                print("Tasks loaded successfully.")
         except FileNotFoundError:
-            print("No saved tasks found.")
+            if self.logs_status == 1 or self.logs_status == 2:
+                print("No saved tasks found.")
         except json.JSONDecodeError:
-            print("Error loading tasks. File may be corrupted.")
+            if self.logs_status == 1 or self.logs_status == 2:
+                print("Error loading tasks. File may be corrupted.")
 
     def clear_screen(self):
         """
@@ -272,11 +410,14 @@ class PanCake:
             self.tasks.pop(task)
             self.important_tasks[task] = "Unfinished"
         elif task in self.important_tasks:
-            print("You already pinned this task.")
+            if self.logs_status == 1 or self.logs_status == 2:
+                print("You already pinned this task.")
         elif task in self.trash:
-            print("This task is in the trash.")
+            if self.logs_status == 1 or self.logs_status == 2:
+                print("This task is in the trash.")
         else:
-            print("This task doesn't exist.")
+            if self.logs_status == 1 or self.logs_status == 2:
+                print("This task doesn't exist.")
 
     def unpin_task(self, task: str):
         """
@@ -288,11 +429,14 @@ class PanCake:
             self.important_tasks.pop(task)
             self.tasks[task] = "Unfinished"
         elif task in self.tasks:
-            print("This task is not pinned.")
+            if self.logs_status == 1 or self.logs_status == 2:
+                print("This task is not pinned.")
         elif task in self.trash:
-            print("This task is in the trash.")
+            if self.logs_status == 1 or self.logs_status == 2:
+                print("This task is in the trash.")
         else:
-            print("This task doesn't exist.")
+            if self.logs_status == 1 or self.logs_status == 2:
+                print("This task doesn't exist.")
 
     def display_history(self):
         """
@@ -305,7 +449,29 @@ class PanCake:
         """
         Clear the entire commands history of the user.
         """
+        if self.logs_status == 2:
+            print("Clearing the commands history...")
         self.history.clear()
+
+    def set_secret_tasks_password(self):
+        """
+        Change the password of the secret tasks.
+        """
+        precedent_password = input("Enter precedent password: ")
+        if precedent_password == self.secret_tasks_password:
+            new_password = input("Enter new password: ")
+            new_password_repeat = input("Repeat new password: ")
+            if new_password_repeat == new_password:
+                self.secret_tasks_password = new_password_repeat
+                confirm_save = input("Password has been modified. Do you want to save? (Y/n) ")
+                if confirm_save == "Y":
+                    self.save_tasks()
+            else:
+                if self.logs_status == 1 or self.logs_status == 2:
+                    print("The two passwords are different.")
+        else:
+            if self.logs_status == 1 or self.logs_status == 2:
+                print("Wrong password.")
 
     def help(self):
         """
@@ -338,6 +504,12 @@ class PanCake:
         print("history                  ->        show your commands history")
         print("history-clear            ->        clear your commands history")
         print("removeall                ->        remove all the tasks")
+        print("secrets                  ->        display the secret tasks")
+        print("hide <task>              ->        add a task to the secret tasks")
+        print("show <task>              ->        remove a task from the secret tasks")
+        print("secrets-setpw            ->        change the password of the secret tasks")
+        print("log <text>               ->        print some text")
+        print("setlogs <status>         ->        change the logs status (0, 1, 2)")
 
     def license(self):
         """
@@ -368,27 +540,29 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     def updated(self):
         print("""
-Pancake 1.2 is out!
-----------------------
+PanCake 1.3 is out!
+---------------------
 What's new?
-- You can now remove everything from the trash!
-- You can mark all your tasks as completed or unfinished in one command!
-- There is a commands history!
-- You can recover all your removed tasks!
-- You can put all your tasks in the trash in only one command!
+- You can now have secret tasks!
+- Password for secret tasks
+- Added a logs management
 
-In particular, this update adds commands to reduce the duration of certain
-manipulations. For example, the 'empty' command deletes all tasks in the
-recycle garbage can, while 'full-complete' completes all tasks.
-A command history has also been added, allowing you to view previously used
-commands. Note also that it is included in the data saved by the 'save'
-command.
+There is no pinning system for hidden (secret) tasks, and they must be put
+back into normal tasks before they can be deleted. Every operation related
+to secret tasks will require a password (empty by default, but you can
+change it).
+As far as log management is concerned, there are 3 logging levels: 0, which
+completely cancels logs, 1, which displays only important messages, and 2,
+which displays absolutely everything.
         """)
 
     def exit(self):
         """
         Exit PanCake.
         """
+        confirm_save = input("All unsaved changes will be lost. Do you want to save before quitting? (Y/n) ")
+        if confirm_save == "Y":
+            self.save_tasks()
         self.clear_screen()
         sys.exit(0)
 
@@ -462,8 +636,26 @@ command.
                 self.history_clear()
             elif name == "removeall":
                 self.remove_all()
+            elif name == "secrets":
+                self.display_secrets()
+            elif name == "hide" and argument:
+                self.add_secret(argument)
+            elif name == "show" and argument:
+                self.remove_secret(argument)
+            elif name == "secrets-setpw":
+                self.set_secret_tasks_password()
+            elif name == "setlogs" and argument:
+                if argument[0] in {"0", "1", "2"}:
+                    self.logs_status = int(argument[0])
+                    if self.logs_status == 1 or self.logs_status == 2:
+                        print(f"Logs status updated to {self.logs_status}.")
+                else:
+                    print("Invalid logs status. Please enter 0, 1, or 2.")
+            elif name == "log" and argument:
+                print(" ".join(argument))
             else:
-                print("Invalid command. Type 'help' to see the commands list.")
+                if self.logs_status == 1 or self.logs_status == 2:
+                    print("Invalid command. Type 'help' to see the commands list.")
 
             self.history.append(command)
 

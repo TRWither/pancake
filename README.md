@@ -38,7 +38,6 @@ PanCake is very easy to use. Here's the full list of commands, which you can als
 
 `updated`: see what is new in the last update
 
-### New 1.2 commands
 `empty`: clear the trash
 
 `removeall`: move all the tasks to the trash
@@ -53,7 +52,25 @@ PanCake is very easy to use. Here's the full list of commands, which you can als
 
 `history-clear`: clear the commands history
 
+### New 1.3 commands
+
+`secrets`: display a list of the secret tasks
+
+`hide <task name>`: add a task to the secret tasks
+
+`show <task name>`: remove a task from the secret tasks
+
+`log <text>`: print some text
+
+`secrets-setpw`: change the secret tasks password
+
+`setlogs <status>`: set the logs status (0=desactivate, 1=important only, 2=everything)
+
 WARNING: you must be root to save and load
+
+## Notes
+The password for secret (or hidden) tasks is empty by default, which means you don't have to enter anything if you're asked. However, this is not very secure, so it's advisable to set it up quickly.
+The password and log status are included in the backup with the `save` command.
 
 ## Installation
 1. Clone this repository

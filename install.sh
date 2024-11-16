@@ -2,7 +2,7 @@
 
 set -e
 
-echo "Installing PanCake version 1.2.0..."
+echo "Installing PanCake version 1.3.0..."
 
 # Check if Python3 is installed
 echo "Looking for Python3..."
@@ -54,7 +54,7 @@ fi
 
 echo "Moving main file into /usr/local/bin..."
 chmod +x "$SCRIPT_DIR/PanCake.py"
-mv "$SCRIPT_DIR/PanCake.py" /usr/local/bin/pancake1.2
+mv "$SCRIPT_DIR/PanCake.py" /usr/local/bin/pancake
 
 echo "PanCake successfully installed!"
 echo "Type 'source pancake-venv/bin/activate' to activate the virtual environment"
